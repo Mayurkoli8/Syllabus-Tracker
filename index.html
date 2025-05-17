@@ -5,64 +5,138 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Syllabus Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-    <!-- Firebase SDKs (compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  body {
+    font-family: 'Poppins', Arial, sans-serif;
+    padding: 30px 15px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    min-height: 100vh;
+  }
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
+  h1 {
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 40px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
 
-        h1 {
-            text-align: center;
-        }
+  .subject {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 25px 30px;
+    margin-bottom: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
 
-        .subject {
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+  .subject:hover {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  }
 
-        .unit {
-            margin: 10px 0;
-        }
+  .subject h2 {
+    font-weight: 600;
+    margin-bottom: 18px;
+    letter-spacing: 1px;
+  }
 
-        .progress-bar {
-            background: #ddd;
-            border-radius: 20px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
+  .unit {
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
 
-        .progress-bar-fill {
-            height: 20px;
-            background: #4caf50;
-            width: 0%;
-            transition: width 0.3s;
-        }
+  /* Custom checkbox styles */
+  .unit input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid #8e44ad;
+    margin-right: 15px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
 
-        button {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+  .unit input[type="checkbox"]:checked {
+    background: #9b59b6;
+    border-color: #9b59b6;
+  }
+
+  .unit input[type="checkbox"]:checked::after {
+    content: '✔';
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    top: 1px;
+    left: 4px;
+  }
+
+  .progress-bar {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 25px;
+    overflow: hidden;
+    margin: 20px 0 0;
+    height: 24px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8e44ad, #9b59b6);
+    width: 0%;
+    border-radius: 25px;
+    transition: width 0.5s ease;
+  }
+
+  button {
+    display: block;
+    margin: 40px auto 0;
+    padding: 14px 50px;
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    color: #fff;
+    font-weight: 600;
+    font-size: 18px;
+    border: none;
+    border-radius: 35px;
+    box-shadow: 0 5px 15px rgba(155, 89, 182, 0.5);
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+  }
+
+  button:hover {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    box-shadow: 0 8px 25px rgba(155, 89, 182, 0.75);
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 600px) {
+    body {
+      padding: 20px 10px;
+    }
+
+    .subject {
+      padding: 20px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px 0;
+      font-size: 20px;
+    }
+  }
+</style>
+
 </head>
 
 <body>
-
     <h1>My Exam Syllabus Tracker</h1>
 
     <div class="subject" data-subject="DSBDA">
@@ -108,11 +182,12 @@
             <div class="progress-bar-fill"></div>
         </div>
     </div>
+    <button id="saveButton">Save Progress to Cloud</button>
 
-    <button onclick="saveProgressToFirebase()">Save Progress to Cloud</button>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-    <script>
-        // Firebase config + init
         const firebaseConfig = {
             apiKey: "AIzaSyASuEsQB4qs57gpnqol9IN0Vzl7mlTepUo",
             authDomain: "syllabus-tracker-e8ba0.firebaseapp.com",
@@ -123,109 +198,69 @@
             measurementId: "G-ZT2F2SVFHZ"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const userDoc = doc(db, "users", "demoUser");
 
-        // Update progress bar
         function updateProgress(subjectEl) {
             const checkboxes = subjectEl.querySelectorAll("input[type='checkbox']");
-            const progressFill = subjectEl.querySelector(".progress-bar-fill");
+            const fill = subjectEl.querySelector(".progress-bar-fill");
             let checkedCount = 0;
-            checkboxes.forEach(cb => {
-                if (cb.checked) checkedCount++;
-            });
-            const percentage = (checkedCount / checkboxes.length) * 100;
-            progressFill.style.width = percentage + "%";
+            checkboxes.forEach(cb => { if (cb.checked) checkedCount++; });
+            const percent = (checkedCount / checkboxes.length) * 100;
+            fill.style.width = percent + "%";
         }
 
-        // Save progress locally
-        function saveProgress() {
+        function collectProgress() {
             const data = {};
-            document.querySelectorAll('.subject').forEach(subject => {
-                const subjectName = subject.dataset.subject;
-                const checkboxes = subject.querySelectorAll("input[type='checkbox']");
-                data[subjectName] = [];
-                checkboxes.forEach(cb => data[subjectName].push(cb.checked));
+            document.querySelectorAll(".subject").forEach(sub => {
+                const name = sub.dataset.subject;
+                const checkboxes = sub.querySelectorAll("input[type='checkbox']");
+                data[name] = [];
+                checkboxes.forEach(cb => data[name].push(cb.checked));
             });
-            localStorage.setItem("syllabusTracker", JSON.stringify(data));
+            return data;
         }
 
-        // Load progress from local storage
-        function loadProgress() {
-            const data = JSON.parse(localStorage.getItem("syllabusTracker"));
-            if (!data) return;
-            document.querySelectorAll('.subject').forEach(subject => {
-                const subjectName = subject.dataset.subject;
-                                const checkboxes = subject.querySelectorAll("input[type='checkbox']");
-                if (data[subjectName]) {
-                    data[subjectName].forEach((checked, i) => {
-                        if (checkboxes[i]) {
-                            checkboxes[i].checked = checked;
-                        }
+        function applyProgress(data) {
+            document.querySelectorAll(".subject").forEach(sub => {
+                const name = sub.dataset.subject;
+                const checkboxes = sub.querySelectorAll("input[type='checkbox']");
+                if (data[name]) {
+                    data[name].forEach((val, idx) => {
+                        if (checkboxes[idx]) checkboxes[idx].checked = val;
                     });
                 }
-                updateProgress(subject);
+                updateProgress(sub);
             });
         }
 
-        // Save to Firestore
         async function saveProgressToFirebase() {
-            const data = {};
-            document.querySelectorAll('.subject').forEach(subject => {
-                const subjectName = subject.dataset.subject;
-                const checkboxes = subject.querySelectorAll("input[type='checkbox']");
-                data[subjectName] = [];
-                checkboxes.forEach(cb => data[subjectName].push(cb.checked));
-            });
-
-            try {
-                await db.collection("users").doc("demoUser").set(data);
-                alert("Progress saved to cloud!");
-            } catch (error) {
-                console.error("Error saving to Firebase:", error);
-                alert("Failed to save progress.");
-            }
+            const data = collectProgress();
+            await setDoc(userDoc, data);
+            alert("Saved successfully!");
         }
 
-        // Load from Firestore
         async function loadProgressFromFirebase() {
-            try {
-                const doc = await db.collection("users").doc("demoUser").get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    document.querySelectorAll('.subject').forEach(subject => {
-                        const subjectName = subject.dataset.subject;
-                        const checkboxes = subject.querySelectorAll("input[type='checkbox']");
-                        if (data[subjectName]) {
-                            data[subjectName].forEach((checked, i) => {
-                                if (checkboxes[i]) {
-                                    checkboxes[i].checked = checked;
-                                }
-                            });
-                        }
-                        updateProgress(subject);
-                    });
-                    localStorage.setItem("syllabusTracker", JSON.stringify(data));
-                }
-            } catch (error) {
-                console.error("Error loading from Firebase:", error);
+            const snap = await getDoc(userDoc);
+            if (snap.exists()) {
+                applyProgress(snap.data());
             }
         }
 
-        // Add listeners
-        document.querySelectorAll("input[type='checkbox']").forEach(checkbox => {
-            checkbox.addEventListener("change", () => {
-                const subjectEl = checkbox.closest(".subject");
-                updateProgress(subjectEl);
-                saveProgress();
+        document.querySelectorAll("input[type='checkbox']").forEach(cb => {
+            cb.addEventListener("change", () => {
+                const sub = cb.closest(".subject");
+                updateProgress(sub);
             });
         });
 
-        // Init
-        loadProgress();
-        loadProgressFromFirebase();
+        document.getElementById("saveButton").addEventListener("click", () => {
+            saveProgressToFirebase().catch(err => alert("Error saving: " + err));
+        });
+
+        loadProgressFromFirebase().catch(console.error);
     </script>
 </body>
 
 </html>
-
