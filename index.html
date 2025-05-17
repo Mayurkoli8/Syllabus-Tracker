@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Syllabus Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .subject {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .unit {
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            background: #ddd;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-bar-fill {
+            height: 20px;
+            background: #4caf50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    
+    <h1>My Exam Syllabus Tracker</h1>
+
+    <div class="subject" data-subject="Math">
+        <h2>DSBDA</h2>
+        <div class="unit"><input type="checkbox" /> Unit 3: Big Data Analytics Life Cycle</div>
+        <div class="unit"><input type="checkbox" /> Unit 4: Predictive Big Data Analytics with Python</div>
+        <div class="unit"><input type="checkbox" /> Unit 5: Big Data Analytics and Model Evaluation </div>
+        <div class="unit"><input type="checkbox" /> Unit 6: Data Visualization and Hadoop</div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+    </div>
+    <div class="subject" data-subject="Math">
+        <h2>WT</h2>
+        <div class="unit"><input type="checkbox" /> Unit 3: Java Servlets and XML </div>
+        <div class="unit"><input type="checkbox" /> Unit 4: JSP and Web Services</div>
+        <div class="unit"><input type="checkbox" /> Unit 5: Server Side Scripting Languages </div>
+        <div class="unit"><input type="checkbox" /> Unit 6: Ruby and Rails </div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+    </div>
+    <div class="subject" data-subject="Math">
+        <h2>AI</h2>
+        <div class="unit"><input type="checkbox" /> Unit 3: Adversarial Search and Games</div>
+        <div class="unit"><input type="checkbox" /> Unit 4: Knowledge</div>
+        <div class="unit"><input type="checkbox" /> Unit 5: Reasoning</div>
+        <div class="unit"><input type="checkbox" /> Unit 6: Planning</div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+    </div>
+    <div class="subject" data-subject="Math">
+        <h2>CC</h2>
+        <div class="unit"><input type="checkbox" /> Unit 3: Virtualization in Cloud Computing</div>
+        <div class="unit"><input type="checkbox" /> Unit 4: Cloud Platforms and Cloud Applications </div>
+        <div class="unit"><input type="checkbox" /> Unit 5: Security in Cloud Computing</div>
+        <div class="unit"><input type="checkbox" /> Unit 6: Advanced Techniques in Cloud Computing </div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+    </div>
+
+    <script>
+        function updateProgress(subjectEl) {
+            const checkboxes = subjectEl.querySelectorAll("input[type='checkbox']");
+            const progressFill = subjectEl.querySelector(".progress-bar-fill");
+            let checkedCount = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) checkedCount++;
+            });
+            const percentage = (checkedCount / checkboxes.length) * 100;
+            progressFill.style.width = percentage + "%";
+        }
+
+        document.querySelectorAll('.subject').forEach(subject => {
+            const checkboxes = subject.querySelectorAll("input[type='checkbox']");
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateProgress(subject);
+                    saveProgress();
+                });
+            });
+        });
+
+        function saveProgress() {
+            const data = {};
+            document.querySelectorAll('.subject').forEach(subject => {
+                const subjectName = subject.dataset.subject;
+                const checkboxes = subject.querySelectorAll("input[type='checkbox']");
+                data[subjectName] = [];
+                checkboxes.forEach(cb => {
+                    data[subjectName].push(cb.checked);
+                });
+            });
+            localStorage.setItem("syllabusTracker", JSON.stringify(data));
+        }
+
+        function loadProgress() {
+            const data = JSON.parse(localStorage.getItem("syllabusTracker"));
+            if (!data) return;
+            document.querySelectorAll('.subject').forEach(subject => {
+                const subjectName = subject.dataset.subject;
+                const checkboxes = subject.querySelectorAll("input[type='checkbox']");
+                if (data[subjectName]) {
+                    data[subjectName].forEach((val, index) => {
+                        checkboxes[index].checked = val;
+                    });
+                    updateProgress(subject);
+                }
+            });
+        }
+
+        loadProgress();
+    </script>
+</body>
+
+</html>
