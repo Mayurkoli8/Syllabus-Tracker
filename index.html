@@ -117,7 +117,58 @@
         </div>
     </div>
 
-    <script>async function saveProgressToFirebase() {
+    <script>
+                function updateProgress(subjectEl) {
+            const checkboxes = subjectEl.querySelectorAll("input[type='checkbox']");
+            const progressFill = subjectEl.querySelector(".progress-bar-fill");
+            let checkedCount = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) checkedCount++;
+            });
+            const percentage = (checkedCount / checkboxes.length) * 100;
+            progressFill.style.width = percentage + "%";
+        }
+
+        document.querySelectorAll('.subject').forEach(subject => {
+            const checkboxes = subject.querySelectorAll("input[type='checkbox']");
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateProgress(subject);
+                    saveProgress();
+                });
+            });
+        });
+
+        function saveProgress() {
+            const data = {};
+            document.querySelectorAll('.subject').forEach(subject => {
+                const subjectName = subject.dataset.subject;
+                const checkboxes = subject.querySelectorAll("input[type='checkbox']");
+                data[subjectName] = [];
+                checkboxes.forEach(cb => {
+                    data[subjectName].push(cb.checked);
+                });
+            });
+            localStorage.setItem("syllabusTracker", JSON.stringify(data));
+        }
+
+        function loadProgress() {
+            const data = JSON.parse(localStorage.getItem("syllabusTracker"));
+            if (!data) return;
+            document.querySelectorAll('.subject').forEach(subject => {
+                const subjectName = subject.dataset.subject;
+                const checkboxes = subject.querySelectorAll("input[type='checkbox']");
+                if (data[subjectName]) {
+                    data[subjectName].forEach((val, index) => {
+                        checkboxes[index].checked = val;
+                    });
+                    updateProgress(subject);
+                }
+            });
+        }
+
+        loadProgress();
+        async function saveProgressToFirebase() {
   const data = {};
   document.querySelectorAll('.subject').forEach(subject => {
     const subjectName = subject.dataset.subject;
